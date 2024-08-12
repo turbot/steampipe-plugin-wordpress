@@ -3,6 +3,7 @@ package wordpress
 import (
 	"context"
   "reflect"
+	"sync"
 
 	"github.com/sogko/go-wordpress"	
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -21,6 +22,13 @@ func getTitle(ctx context.Context, d *transform.TransformData) (interface{}, err
 	return title, nil
 }
 
+func getLink(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  post := d.Value.(*wordpress.Post)
+	link := post.Link
+	return link, nil
+}
+
+
 func getCategories(ctx context.Context, d *transform.TransformData) (interface{}, error) {
   post := d.Value.(*wordpress.Post)
 	categories := post.Categories
@@ -31,29 +39,58 @@ func getCategories(ctx context.Context, d *transform.TransformData) (interface{}
 type ListFunc func(context.Context, interface{}, int, int) (interface{}, *wordpress.Response, error)
 
 func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
-	perPage := 100 // Adjust this value based on your needs and API limits
+	perPage := 100
 	offset := 0
 
+	// Use a buffered channel to limit the number of concurrent requests
+	concurrencyLimit := 10
+	ch := make(chan struct{}, concurrencyLimit)
+	var wg sync.WaitGroup
+	var mu sync.Mutex // Mutex to synchronize access to shared variables
+	done := false
+
 	for {
-		items, _, err := listFunc(ctx, options, perPage, offset)
-		if err != nil {
-			plugin.Logger(ctx).Error("wordpress.paginate", "query_error", err)
-			return err
-		}
+			mu.Lock()
+			if done {
+					mu.Unlock()
+					break
+			}
+			currentOffset := offset
+			offset += perPage
+			mu.Unlock()
 
-		itemsSlice := reflect.ValueOf(items)
-		for i := 0; i < itemsSlice.Len(); i++ {
-			d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
-		}
+			ch <- struct{}{}
+			wg.Add(1)
 
-		// Check if we've reached the end of the items
-		if itemsSlice.Len() < perPage {
-			break
-		}
+			go func(offset int) {
+					defer func() {
+							<-ch
+							wg.Done()
+					}()
 
-		// Update the offset for the next page
-		offset += perPage
+					plugin.Logger(ctx).Debug("WordPress paginate", "offset", offset)
+
+					items, _, err := listFunc(ctx, options, perPage, offset)
+					if err != nil {
+							plugin.Logger(ctx).Error("wordpress.paginate", "query_error", err)
+							return
+					}
+
+					itemsSlice := reflect.ValueOf(items)
+					for i := 0; i < itemsSlice.Len(); i++ {
+							d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
+					}
+
+					// If fewer items than perPage were returned, it's the last page
+					if itemsSlice.Len() < perPage {
+							mu.Lock()
+							done = true
+							mu.Unlock()
+					}
+			}(currentOffset)
 	}
 
+	// Wait for all goroutines to complete
+	wg.Wait()
 	return nil
 }
