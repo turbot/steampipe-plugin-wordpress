@@ -3,7 +3,7 @@ package wordpress
 import (
 	"context"
   "reflect"
-	"sync"
+//	"sync"
 
 	"github.com/sogko/go-wordpress"	
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -37,6 +37,38 @@ func getCategories(ctx context.Context, d *transform.TransformData) (interface{}
 
 
 type ListFunc func(context.Context, interface{}, int, int) (interface{}, *wordpress.Response, error)
+
+func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
+	perPage := 100
+	offset := 0
+
+	for {
+			plugin.Logger(ctx).Debug("WordPress paginate", "offset", offset)
+
+			items, _, err := listFunc(ctx, options, perPage, offset)
+			if err != nil {
+					plugin.Logger(ctx).Error("wordpress.paginate", "query_error", err)
+					return err
+			}
+
+			itemsSlice := reflect.ValueOf(items)
+			for i := 0; i < itemsSlice.Len(); i++ {
+					d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
+			}
+
+			// If fewer items than perPage were returned, it's the last page
+			if itemsSlice.Len() < perPage {
+					break
+			}
+
+			// Update the offset for the next page
+			offset += perPage
+	}
+
+	return nil
+}
+
+/*
 
 func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
 	perPage := 100
@@ -94,3 +126,4 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 	wg.Wait()
 	return nil
 }
+*/
