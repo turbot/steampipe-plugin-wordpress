@@ -21,6 +21,13 @@ func getTitle(ctx context.Context, d *transform.TransformData) (interface{}, err
 	return title, nil
 }
 
+func getCategories(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  post := d.Value.(*wordpress.Post)
+	categories := post.Categories
+	return categories, nil
+}
+
+
 type ListFunc func(context.Context, interface{}, int, int) (interface{}, *wordpress.Response, error)
 
 func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {

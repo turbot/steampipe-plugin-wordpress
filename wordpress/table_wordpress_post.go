@@ -26,6 +26,7 @@ func tableWordPressPost(ctx context.Context) *plugin.Table {
 			{Name: "content", Type: proto.ColumnType_JSON, Description: "The post content."},
 			{Name: "author", Type: proto.ColumnType_INT, Description: "The post author ID."},
 			{Name: "date", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromValue().Transform(getDate), Description: "The post publication date."},
+			{Name: "category", Type: proto.ColumnType_JSON, Transform: transform.FromValue().Transform(getCategories), Description: "The categories assigned to the post."},
 			{Name: "raw", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
 		},
 	}
