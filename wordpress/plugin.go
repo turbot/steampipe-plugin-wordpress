@@ -16,8 +16,9 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			Schema:      ConfigSchema,
 		},
 		TableMap: map[string]*plugin.Table{
-			"wordpress_post":   tableWordPressPost(ctx),
-			"wordpress_author": tableWordPressAuthor(ctx),
+			"wordpress_post":     tableWordPressPost(ctx),
+			"wordpress_author":   tableWordPressAuthor(ctx),
+			"wordpress_category": tableWordPressCategory(ctx),
 		},
 	}
 	return p

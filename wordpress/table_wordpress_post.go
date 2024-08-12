@@ -23,6 +23,7 @@ func tableWordPressPost(ctx context.Context) *plugin.Table {
 		Columns: []*plugin.Column{
 			{Name: "id", Type: proto.ColumnType_INT, Description: "The post ID."},
 			{Name: "title", Type: proto.ColumnType_STRING, Transform: transform.FromValue().Transform(getTitle), Description: "The post title."},
+			{Name: "link", Type: proto.ColumnType_STRING, Transform: transform.FromValue().Transform(getLink), Description: "The post link."},
 			{Name: "content", Type: proto.ColumnType_JSON, Description: "The post content."},
 			{Name: "author", Type: proto.ColumnType_INT, Description: "The post author ID."},
 			{Name: "date", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromValue().Transform(getDate), Description: "The post publication date."},
@@ -38,8 +39,8 @@ func listPosts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
-	plugin.Logger(ctx).Debug("author", "author", d.Quals["author"])
-	plugin.Logger(ctx).Debug("date", "date", d.Quals["date"])
+	plugin.Logger(ctx).Debug("WordPress listPosts author", "author", d.Quals["author"])
+	plugin.Logger(ctx).Debug("WordPress listPosts date", "date", d.Quals["date"])
 
 	options := &wordpress.PostListOptions{}
 
@@ -61,7 +62,7 @@ func listPosts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		}
 	}	
 
-	plugin.Logger(ctx).Warn("WordPress API request options", "options", options)
+	plugin.Logger(ctx).Debug("WordPress listPosts API request options", "options", options)
 
 	err = paginate(ctx, d, func(ctx context.Context, opts interface{}, perPage, offset int) (interface{}, *wordpress.Response, error) {
 		options := opts.(*wordpress.PostListOptions)

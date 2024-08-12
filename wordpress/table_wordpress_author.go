@@ -36,13 +36,16 @@ func listAuthors(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 		return nil, err
 	}
 
+	plugin.Logger(ctx).Debug("WordPress listAuthors id", "id", d.Quals["id"])
+
 	options := &wordpress.UserListOptions{}
 
-    // Check if the author key column is specified
-  if d.Quals["id"] != nil {
-			id := d.EqualsQuals["id"].GetInt64Value()
-			options.Include = []int{int(id)}
-	}
+	if d.Quals["id"] != nil {
+		id := d.EqualsQuals["id"].GetInt64Value()
+		options.Include = []int{int(id)}
+}
+
+	plugin.Logger(ctx).Debug("WordPress listAuthors API request options", "options", options)
 
 	err = paginate(ctx, d, func(ctx context.Context, opts interface{}, perPage, offset int) (interface{}, *wordpress.Response, error) {
 		options := opts.(*wordpress.UserListOptions)

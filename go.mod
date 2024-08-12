@@ -9,6 +9,8 @@ require (
 
 replace github.com/sogko/go-wordpress => github.com/robbiet480/go-wordpress v0.0.0-20180206201500-3b8369ffcef3
 
+//replace github.com/sogko/go-wordpress => /home/jon/go-wordpress
+
 require (
 	cloud.google.com/go v0.110.7 // indirect
 	cloud.google.com/go/compute/metadata v0.3.0 // indirect
