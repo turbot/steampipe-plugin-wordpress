@@ -14,9 +14,10 @@ func tableWordPressPost(ctx context.Context) *plugin.Table {
 		Name:        "wordpress_post",
 		Description: "Represents a post in WordPress.",
 		List: &plugin.ListConfig{
-			Hydrate:    listPosts,
+			Hydrate: listPosts,
 			KeyColumns: []*plugin.KeyColumn{
 				{Name: "author", Require: plugin.Optional},
+				{Name: "date", Require: plugin.Optional, Operators: []string{">", ">=", "<", "<="}},
 			},
 		},
 		Columns: []*plugin.Column{
@@ -36,12 +37,30 @@ func listPosts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		return nil, err
 	}
 
+	plugin.Logger(ctx).Debug("author", "author", d.Quals["author"])
+	plugin.Logger(ctx).Debug("date", "date", d.Quals["date"])
+
 	options := &wordpress.PostListOptions{}
 
-		if d.Quals["author"] != nil {
+	if d.Quals["author"] != nil {
 		id := d.EqualsQuals["author"].GetInt64Value()
 		options.Author = []int{int(id)}
+	}
+
+	if d.Quals["date"] != nil {
+		for _, q := range d.Quals["date"].Quals {
+			switch q.Operator {
+			case ">=", ">":
+				t := q.Value.GetTimestampValue().AsTime()
+				options.After = &t
+			case "<=", "<":
+				t := q.Value.GetTimestampValue().AsTime()
+				options.Before = &t
+			}
+		}
 	}	
+
+	plugin.Logger(ctx).Warn("WordPress API request options", "options", options)
 
 	err = paginate(ctx, d, func(ctx context.Context, opts interface{}, perPage, offset int) (interface{}, *wordpress.Response, error) {
 		options := opts.(*wordpress.PostListOptions)

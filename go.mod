@@ -1,15 +1,17 @@
 module github.com/judell/steampipe-plugin-wordpress
 
-go 1.21
+go 1.21.4
 
-require github.com/turbot/steampipe-plugin-sdk/v5 v5.8.0
+require (
+	github.com/sogko/go-wordpress v0.0.0-20190616154547-91556a5001c7
+	github.com/turbot/steampipe-plugin-sdk/v5 v5.8.0
+)
 
 replace github.com/sogko/go-wordpress => github.com/robbiet480/go-wordpress v0.0.0-20180206201500-3b8369ffcef3
 
 require (
 	cloud.google.com/go v0.110.7 // indirect
-	cloud.google.com/go/compute v1.23.0 // indirect
-	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	cloud.google.com/go/iam v1.1.1 // indirect
 	cloud.google.com/go/storage v1.30.1 // indirect
 	github.com/PuerkitoBio/goquery v1.9.2 // indirect
@@ -75,7 +77,6 @@ require (
 	github.com/prometheus/procfs v0.8.0 // indirect
 	github.com/rivo/uniseg v0.2.0 // indirect
 	github.com/sethvargo/go-retry v0.2.4 // indirect
-	github.com/sogko/go-wordpress v0.0.0-20190616154547-91556a5001c7 // indirect
 	github.com/stevenle/topsort v0.2.0 // indirect
 	github.com/tkrajina/go-reflector v0.5.6 // indirect
 	github.com/tomnomnom/linkheader v0.0.0-20180905144013-02ca5825eb80 // indirect
@@ -95,7 +96,7 @@ require (
 	golang.org/x/crypto v0.24.0 // indirect
 	golang.org/x/exp v0.0.0-20230522175609-2e198f4a06a1 // indirect
 	golang.org/x/net v0.26.0 // indirect
-	golang.org/x/oauth2 v0.11.0 // indirect
+	golang.org/x/oauth2 v0.22.0 // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.21.0 // indirect
 	golang.org/x/text v0.16.0 // indirect
