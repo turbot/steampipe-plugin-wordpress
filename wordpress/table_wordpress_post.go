@@ -68,6 +68,8 @@ func listPosts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 		options := opts.(*wordpress.PostListOptions)
 		options.ListOptions.PerPage = perPage
 		options.ListOptions.Offset = offset
+		options.ListOptions.OrderBy = "id"
+		options.ListOptions.Order = "asc"
 		return conn.Posts.List(ctx, options)
 	}, options)
 

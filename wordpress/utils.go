@@ -3,9 +3,9 @@ package wordpress
 import (
 	"context"
   "reflect"
-	"sync"
-	"sync/atomic"
-	"time"
+	//"sync"
+	//"sync/atomic"
+	//"time"
 
 	"github.com/sogko/go-wordpress"	
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
@@ -40,7 +40,6 @@ func getCategories(ctx context.Context, d *transform.TransformData) (interface{}
 
 type ListFunc func(context.Context, interface{}, int, int) (interface{}, *wordpress.Response, error)
 
-/*
 func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
 	perPage := 100
 	offset := 0
@@ -70,7 +69,73 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 
 	return nil
 }
-*/
+
+
+/*
+func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
+	perPage := 100
+	concurrencyLimit := 10
+	ch := make(chan int, concurrencyLimit)
+	var wg sync.WaitGroup
+	var done int32 = 0 // Use atomic for done flag as well
+	delay := 100 * time.Millisecond
+
+	// Launch workers
+	for i := 0; i < concurrencyLimit; i++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+
+			for offset := range ch {
+				if atomic.LoadInt32(&done) == 1 || ctx.Err() != nil {
+					break
+				}
+
+				// Introduce a delay before making the API call
+				time.Sleep(delay)
+
+				plugin.Logger(ctx).Debug("WordPress paginate", "offset", offset)
+
+				items, _, err := listFunc(ctx, options, perPage, offset)
+				if err != nil {
+					plugin.Logger(ctx).Error("wordpress.paginate", "query_error", err)
+					return
+				}
+
+				itemsSlice := reflect.ValueOf(items)
+				plugin.Logger(ctx).Debug("WordPress paginate", "offset", offset, "items", itemsSlice.Len())
+
+				for i := 0; i < itemsSlice.Len(); i++ {
+					d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
+				}
+
+				if itemsSlice.Len() < perPage {
+					atomic.StoreInt32(&done, 1)
+				}
+			}
+		}()
+	}
+
+	// Feed the worker pool with ordered offsets
+	offset := 0
+	for {
+		if atomic.LoadInt32(&done) == 1 || ctx.Err() != nil {
+			break
+		}
+
+		ch <- offset
+
+		offset += perPage
+	}
+
+	// Close the channel to signal workers to exit
+	close(ch)
+
+	// Wait for all workers to complete
+	wg.Wait()
+
+	return nil
+}
 
 func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
 	perPage := 100
@@ -79,33 +144,7 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 	ch := make(chan struct{}, concurrencyLimit)
 	var wg sync.WaitGroup
 	var done int32 = 0 // Use atomic for done flag as well
-	var firstPageReceived int32 = 0 // Flag to ensure at least one page is received
-	delay := 100 * time.Millisecond // 100ms delay between each API call
-
-	// Make the first API call synchronously
-	items, _, err := listFunc(ctx, options, perPage, int(offset))
-	if err != nil {
-			plugin.Logger(ctx).Error("wordpress.paginate", "query_error", err)
-			return err
-	}
-
-	itemsSlice := reflect.ValueOf(items)
-	if itemsSlice.Len() > 0 {
-			atomic.StoreInt32(&firstPageReceived, 1) // Mark that we've received at least one page
-	}
-
-	for i := 0; i < itemsSlice.Len(); i++ {
-			d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
-	}
-
-	// Check if we need to paginate further
-	if itemsSlice.Len() < perPage {
-			// If fewer items than perPage were returned, no need for further pagination
-			return nil
-	}
-
-	// If more pages are expected, proceed with concurrent pagination
-	atomic.AddInt64(&offset, int64(perPage)) // Move offset to the next page
+	delay := 100 * time.Millisecond 
 	for {
 			if atomic.LoadInt32(&done) == 1 || ctx.Err() != nil {
 					break
@@ -134,12 +173,10 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 					}
 
 					itemsSlice := reflect.ValueOf(items)
-					if itemsSlice.Len() > 0 {
-							atomic.StoreInt32(&firstPageReceived, 1) // Mark that we've received at least one page
-					}
+					plugin.Logger(ctx).Debug("WordPress paginate", "offset", currentOffset, "items", itemsSlice.Len())
 
 					for i := 0; i < itemsSlice.Len(); i++ {
-							d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
+						d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
 					}
 
 					if itemsSlice.Len() < perPage {
@@ -153,8 +190,6 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 
 	return nil
 }
-
-/*
 
 func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
 	perPage := 100
