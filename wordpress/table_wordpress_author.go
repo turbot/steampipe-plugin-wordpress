@@ -24,6 +24,7 @@ func tableWordPressAuthor(ctx context.Context) *plugin.Table {
 			{Name: "name", Type: proto.ColumnType_STRING, Description: "The author's name."},
 			{Name: "description", Type: proto.ColumnType_STRING, Description: "The author's description."},
 			{Name: "link", Type: proto.ColumnType_STRING, Description: "The author's link."},
+			{Name: "url", Type: proto.ColumnType_STRING, Description: "The author's url."},
 			{Name: "slug", Type: proto.ColumnType_STRING, Description: "The author's slug."},
 			{Name: "raw", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
 		},

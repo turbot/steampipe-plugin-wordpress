@@ -8,9 +8,4 @@ connection "wordpress" {
   # username = "your_username"
   # password = "your_application_password"
 
-  # Optional: Number of retries for API calls
-  # max_retries = 3
-
-  # Optional: Timeout for API calls (in seconds)
-  # timeout = 30
 }

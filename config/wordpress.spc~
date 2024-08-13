@@ -1,7 +1,0 @@
-connection "wordpress" {
-  plugin = "wordpress"
-
-  endpoint = ""
-  username = ""
-  password = ""
-}
