@@ -44,7 +44,7 @@ func listAuthors(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData
 	if d.Quals["id"] != nil {
 		id := d.EqualsQuals["id"].GetInt64Value()
 		options.Include = []int{int(id)}
-}
+	}
 
 	plugin.Logger(ctx).Debug("WordPress listAuthors API request options", "options", options)
 

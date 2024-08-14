@@ -22,12 +22,13 @@ func tableWordPressPost(ctx context.Context) *plugin.Table {
 		},
 		Columns: []*plugin.Column{
 			{Name: "id", Type: proto.ColumnType_INT, Description: "The post ID."},
-			{Name: "title", Type: proto.ColumnType_STRING, Transform: transform.FromValue().Transform(getTitle), Description: "The post title."},
-			{Name: "link", Type: proto.ColumnType_STRING, Transform: transform.FromValue().Transform(getLink), Description: "The post link."},
-			{Name: "content", Type: proto.ColumnType_JSON, Description: "The post content."},
+			{Name: "title", Type: proto.ColumnType_STRING, Transform: transform.FromValue().Transform(getPostTitle), Description: "The post title."},
+			{Name: "link", Type: proto.ColumnType_STRING, Description: "The post link."},
+			{Name: "content", Type: proto.ColumnType_STRING, Transform: transform.FromValue().Transform(getPostContent), Description: "The post content."},
 			{Name: "author", Type: proto.ColumnType_INT, Description: "The post author ID."},
-			{Name: "date", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromValue().Transform(getDate), Description: "The post publication date."},
-			{Name: "category", Type: proto.ColumnType_JSON, Transform: transform.FromValue().Transform(getCategories), Description: "The categories assigned to the post."},
+			{Name: "date", Type: proto.ColumnType_TIMESTAMP, Transform: transform.FromValue().Transform(getPostDate), Description: "The post publication date."},
+			{Name: "category", Type: proto.ColumnType_JSON, Transform: transform.FromValue().Transform(getPostCategory), Description: "The categories assigned to the post."},
+			{Name: "tag", Type: proto.ColumnType_JSON, Transform: transform.FromValue().Transform(getPostTag), Description: "The tags assigned to the post."},
 			{Name: "raw", Type: proto.ColumnType_JSON, Transform: transform.FromValue()},
 		},
 	}
@@ -60,7 +61,7 @@ func listPosts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 				options.Before = &t
 			}
 		}
-	}	
+	}
 
 	plugin.Logger(ctx).Debug("WordPress listPosts API request options", "options", options)
 

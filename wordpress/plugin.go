@@ -19,6 +19,8 @@ func Plugin(ctx context.Context) *plugin.Plugin {
 			"wordpress_post":     tableWordPressPost(ctx),
 			"wordpress_author":   tableWordPressAuthor(ctx),
 			"wordpress_category": tableWordPressCategory(ctx),
+			"wordpress_comment":  tableWordPressComment(ctx),
+			"wordpress_tag":      tableWordPressTag(ctx),
 		},
 	}
 	return p

@@ -12,30 +12,66 @@ import (
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"	
 )
 
-func getDate(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getPostDate(ctx context.Context, d *transform.TransformData) (interface{}, error) {
   post := d.Value.(*wordpress.Post)
 	date := post.Date.Time
 	return date, nil
 }
 
-func getTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getPostTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
   post := d.Value.(*wordpress.Post)
 	title := post.Title.Rendered
 	return title, nil
 }
 
-func getLink(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  post := d.Value.(*wordpress.Post)
-	link := post.Link
-	return link, nil
-}
-
-
-func getCategories(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+func getPostCategory(ctx context.Context, d *transform.TransformData) (interface{}, error) {
   post := d.Value.(*wordpress.Post)
 	categories := post.Categories
 	return categories, nil
 }
+
+func getPostTag(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  post := d.Value.(*wordpress.Post)
+	tags := post.Tags
+	return tags, nil
+}
+
+func getPostContent(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  post := d.Value.(*wordpress.Post)
+	date := post.Content.Rendered
+	return date, nil
+}
+
+func getCommentDate(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  comment := d.Value.(*wordpress.Comment)
+	date := comment.Date.Time
+	return date, nil
+}
+
+func getCommentContent(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  comment := d.Value.(*wordpress.Comment)
+	content := comment.Content.Rendered
+	return content, nil
+}
+
+func getTagCount(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  tag := d.Value.(*wordpress.Tag)
+	count := tag.Count
+	return count, nil
+}
+
+func getTagDescription(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  tag := d.Value.(*wordpress.Tag)
+	description := tag.Description
+	return description, nil
+}
+
+func getTagLink(ctx context.Context, d *transform.TransformData) (interface{}, error) {
+  tag := d.Value.(*wordpress.Tag)
+	link := tag.Link
+	return link, nil
+}
+
 
 
 type ListFunc func(context.Context, interface{}, int, int) (interface{}, *wordpress.Response, error)
