@@ -7,9 +7,7 @@ import (
 	"github.com/sogko/go-wordpress"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/schema"
-
 )
-
 
 var ConfigSchema = map[string]*schema.Attribute{
 	"endpoint": {
@@ -24,16 +22,14 @@ var ConfigSchema = map[string]*schema.Attribute{
 }
 
 type PluginConfig struct {
-	Endpoint    *string `cty:"endpoint"`
-	Username     *string `cty:"username"`
-	Password     *string `cty:"password"`
-	}
-
+	Endpoint *string `cty:"endpoint"`
+	Username *string `cty:"username"`
+	Password *string `cty:"password"`
+}
 
 func ConfigInstance() interface{} {
 	return &PluginConfig{}
 }
-
 
 func connect(ctx context.Context, d *plugin.QueryData) (*wordpress.Client, error) {
 	// Load connection from cache, which preserves throttling protection etc
@@ -76,5 +72,3 @@ func GetConfig(connection *plugin.Connection) PluginConfig {
 
 	return config
 }
-
-

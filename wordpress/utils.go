@@ -2,77 +2,75 @@ package wordpress
 
 import (
 	"context"
-  "reflect"
+	"reflect"
 	//"sync"
 	//"sync/atomic"
 	//"time"
 
-	"github.com/sogko/go-wordpress"	
+	"github.com/sogko/go-wordpress"
 	"github.com/turbot/steampipe-plugin-sdk/v5/plugin"
-	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"	
+	"github.com/turbot/steampipe-plugin-sdk/v5/plugin/transform"
 )
 
 func getPostDate(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  post := d.Value.(*wordpress.Post)
+	post := d.Value.(*wordpress.Post)
 	date := post.Date.Time
 	return date, nil
 }
 
 func getPostTitle(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  post := d.Value.(*wordpress.Post)
+	post := d.Value.(*wordpress.Post)
 	title := post.Title.Rendered
 	return title, nil
 }
 
 func getPostCategory(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  post := d.Value.(*wordpress.Post)
+	post := d.Value.(*wordpress.Post)
 	categories := post.Categories
 	return categories, nil
 }
 
 func getPostTag(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  post := d.Value.(*wordpress.Post)
+	post := d.Value.(*wordpress.Post)
 	tags := post.Tags
 	return tags, nil
 }
 
 func getPostContent(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  post := d.Value.(*wordpress.Post)
+	post := d.Value.(*wordpress.Post)
 	date := post.Content.Rendered
 	return date, nil
 }
 
 func getCommentDate(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  comment := d.Value.(*wordpress.Comment)
+	comment := d.Value.(*wordpress.Comment)
 	date := comment.Date.Time
 	return date, nil
 }
 
 func getCommentContent(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  comment := d.Value.(*wordpress.Comment)
+	comment := d.Value.(*wordpress.Comment)
 	content := comment.Content.Rendered
 	return content, nil
 }
 
 func getTagCount(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  tag := d.Value.(*wordpress.Tag)
+	tag := d.Value.(*wordpress.Tag)
 	count := tag.Count
 	return count, nil
 }
 
 func getTagDescription(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  tag := d.Value.(*wordpress.Tag)
+	tag := d.Value.(*wordpress.Tag)
 	description := tag.Description
 	return description, nil
 }
 
 func getTagLink(ctx context.Context, d *transform.TransformData) (interface{}, error) {
-  tag := d.Value.(*wordpress.Tag)
+	tag := d.Value.(*wordpress.Tag)
 	link := tag.Link
 	return link, nil
 }
-
-
 
 type ListFunc func(context.Context, interface{}, int, int) (interface{}, *wordpress.Response, error)
 
@@ -81,31 +79,30 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 	offset := 0
 
 	for {
-			plugin.Logger(ctx).Debug("WordPress paginate", "offset", offset)
+		plugin.Logger(ctx).Debug("WordPress paginate", "offset", offset)
 
-			items, _, err := listFunc(ctx, options, perPage, offset)
-			if err != nil {
-					plugin.Logger(ctx).Debug("wordpress.paginate", "query_error", err)
-					return err
-			}
+		items, _, err := listFunc(ctx, options, perPage, offset)
+		if err != nil {
+			plugin.Logger(ctx).Debug("wordpress.paginate", "query_error", err)
+			return err
+		}
 
-			itemsSlice := reflect.ValueOf(items)
-			for i := 0; i < itemsSlice.Len(); i++ {
-					d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
-			}
+		itemsSlice := reflect.ValueOf(items)
+		for i := 0; i < itemsSlice.Len(); i++ {
+			d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
+		}
 
-			// If fewer items than perPage were returned, it's the last page
-			if itemsSlice.Len() < perPage {
-					break
-			}
+		// If fewer items than perPage were returned, it's the last page
+		if itemsSlice.Len() < perPage {
+			break
+		}
 
-			// Update the offset for the next page
-			offset += perPage
+		// Update the offset for the next page
+		offset += perPage
 	}
 
 	return nil
 }
-
 
 /*
 func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, options interface{}) error {
@@ -180,7 +177,7 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 	ch := make(chan struct{}, concurrencyLimit)
 	var wg sync.WaitGroup
 	var done int32 = 0 // Use atomic for done flag as well
-	delay := 100 * time.Millisecond 
+	delay := 100 * time.Millisecond
 	for {
 			if atomic.LoadInt32(&done) == 1 || ctx.Err() != nil {
 					break

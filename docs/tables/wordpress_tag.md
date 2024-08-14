@@ -13,7 +13,7 @@ select
 from
   wordpress_tag
 ```
-### Tabulate tags by countList categories matching `data`
+### Tabulate tags by count
 
 ```sql
 select
