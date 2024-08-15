@@ -65,14 +65,32 @@ func listPosts(ctx context.Context, d *plugin.QueryData, _ *plugin.HydrateData) 
 
 	plugin.Logger(ctx).Debug("WordPress listPosts API request options", "options", options)
 
-	err = paginate(ctx, d, func(ctx context.Context, opts interface{}, perPage, offset int) (interface{}, *wordpress.Response, error) {
-		options := opts.(*wordpress.PostListOptions)
-		options.ListOptions.PerPage = perPage
-		options.ListOptions.Offset = offset
-		options.ListOptions.OrderBy = "id"
-		options.ListOptions.Order = "asc"
-		return conn.Posts.List(ctx, options)
-	}, options)
+	err = paginate(
+		ctx, // Context for the operation
+		d,   // QueryData containing information about the current query
+
+		// This is the ListFunc - an anonymous function that wraps the actual API call
+		func(ctx context.Context, opts interface{}, perPage, offset int) (interface{}, *wordpress.Response, error) {
+			// Type assert the generic opts to the specific PostListOptions
+			// This is necessary because opts is passed as interface{} for flexibility
+			options := opts.(*wordpress.PostListOptions)
+
+			// Set up pagination parameters
+			options.ListOptions.PerPage = perPage // Number of items per page
+			options.ListOptions.Offset = offset   // Starting position for this page
+
+			// Set up sorting parameters
+			options.ListOptions.OrderBy = "id" // Sort by post ID
+			options.ListOptions.Order = "asc"  // Sort in ascending order
+
+			// Make the actual API call using the WordPress SDK
+			// conn.Posts.List returns ([]wordpress.Post, *wordpress.Response, error)
+			// But we return it as (interface{}, *wordpress.Response, error) to match ListFunc signature
+			return conn.Posts.List(ctx, options)
+		},
+
+		// Pass in the initial options (filters, etc.) set up earlier in the listPosts function
+		options)
 
 	return nil, err
 }

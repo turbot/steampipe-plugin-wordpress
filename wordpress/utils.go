@@ -81,15 +81,28 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 	for {
 		plugin.Logger(ctx).Debug("WordPress paginate", "offset", offset)
 
+		// `listFunc`, the passed-in anonymous function, could call the go SDK's `Posts.List` (which wraps the API's
+		// `GET /wp-json/wp/v2/posts`, or `Comments.List` and `GET /wp-json/wp/v2/comments`, and so on.
 		items, _, err := listFunc(ctx, options, perPage, offset)
 		if err != nil {
 			plugin.Logger(ctx).Debug("wordpress.paginate", "query_error", err)
 			return err
 		}
 
+		// Use reflection to handle the 'items' regardless of its concrete type.
+		// `items` is an interface{}. It could wrap a slice of wordpress.Post, wordpress.Tag, or other,
+		// depending on what listFunc returns. We assume, however, that `items` a slice or array-like structure.
 		itemsSlice := reflect.ValueOf(items)
+
 		for i := 0; i < itemsSlice.Len(); i++ {
-			d.StreamListItem(ctx, itemsSlice.Index(i).Interface())
+			// Get the i-th item from the slice
+			// Index(i) returns a reflect.Value representing the i-th element
+			item := itemsSlice.Index(i).Interface()
+
+			// Stream the item to Steampipe
+			// Interface() converts the reflect.Value back to an interface{},
+			// which is what StreamListItem expects
+			d.StreamListItem(ctx, item)
 		}
 
 		// If fewer items than perPage were returned, it's the last page
@@ -97,7 +110,6 @@ func paginate(ctx context.Context, d *plugin.QueryData, listFunc ListFunc, optio
 			break
 		}
 
-		// Update the offset for the next page
 		offset += perPage
 	}
 
