@@ -2,6 +2,9 @@ name: Build
 
 on: [push, pull_request]
 
+permissions:
+  contents: read
+
 jobs:
   build:
 
@@ -17,6 +20,6 @@ jobs:
       - run: make
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
+        uses: golangci/golangci-lint-action@3a919529898de77ec3da873e3063ca4b10e7f5cc # v3
         with:
           version: latest
